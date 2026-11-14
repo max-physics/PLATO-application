@@ -64,6 +64,9 @@ def seed_public_planets(session: Session) -> int:
                     radius_solar=_optional_float(row["st_rad"]),
                     radius_uncertainty_plus_solar=_optional_float(row["st_raderr1"]),
                     radius_uncertainty_minus_solar=_absolute_optional_float(row["st_raderr2"]),
+                    mass_solar=_optional_float(row.get("st_mass", "")),
+                    mass_uncertainty_plus_solar=_optional_float(row.get("st_masserr1", "")),
+                    mass_uncertainty_minus_solar=_absolute_optional_float(row.get("st_masserr2", "")),
                     is_synthetic=False,
                     provenance="NASA Exoplanet Archive, Planetary Systems Composite Parameters table",
                     source_url=NASA_ARCHIVE_URL,
@@ -71,9 +74,24 @@ def seed_public_planets(session: Session) -> int:
                 )
                 session.add(star)
                 session.flush()
+            elif star.mass_solar is None:
+                star.mass_solar = _optional_float(row.get("st_mass", ""))
+                star.mass_uncertainty_plus_solar = _optional_float(row.get("st_masserr1", ""))
+                star.mass_uncertainty_minus_solar = _absolute_optional_float(row.get("st_masserr2", ""))
 
-            existing = session.scalar(select(Planet.id).where(Planet.catalog_id == f"NASA-PS-{planet_name}"))
+            existing = session.scalar(select(Planet).where(Planet.catalog_id == f"NASA-PS-{planet_name}"))
             if existing is not None:
+                if existing.semimajor_axis_au is None:
+                    existing.semimajor_axis_au = _optional_float(row.get("pl_orbsmax", ""))
+                    existing.semimajor_axis_uncertainty_plus_au = _optional_float(row.get("pl_orbsmaxerr1", ""))
+                    existing.semimajor_axis_uncertainty_minus_au = _absolute_optional_float(
+                        row.get("pl_orbsmaxerr2", "")
+                    )
+                    existing.eccentricity = _optional_float(row.get("pl_orbeccen", ""))
+                    existing.eccentricity_uncertainty_plus = _optional_float(row.get("pl_orbeccenerr1", ""))
+                    existing.eccentricity_uncertainty_minus = _absolute_optional_float(
+                        row.get("pl_orbeccenerr2", "")
+                    )
                 continue
             session.add(
                 Planet(
@@ -83,6 +101,12 @@ def seed_public_planets(session: Session) -> int:
                     orbital_period_days=_optional_float(row["pl_orbper"]),
                     orbital_period_uncertainty_plus_days=_optional_float(row["pl_orbpererr1"]),
                     orbital_period_uncertainty_minus_days=_absolute_optional_float(row["pl_orbpererr2"]),
+                    semimajor_axis_au=_optional_float(row.get("pl_orbsmax", "")),
+                    semimajor_axis_uncertainty_plus_au=_optional_float(row.get("pl_orbsmaxerr1", "")),
+                    semimajor_axis_uncertainty_minus_au=_absolute_optional_float(row.get("pl_orbsmaxerr2", "")),
+                    eccentricity=_optional_float(row.get("pl_orbeccen", "")),
+                    eccentricity_uncertainty_plus=_optional_float(row.get("pl_orbeccenerr1", "")),
+                    eccentricity_uncertainty_minus=_absolute_optional_float(row.get("pl_orbeccenerr2", "")),
                     radius_earth=_optional_float(row["pl_rade"]),
                     radius_uncertainty_plus_earth=_optional_float(row["pl_radeerr1"]),
                     radius_uncertainty_minus_earth=_absolute_optional_float(row["pl_radeerr2"]),

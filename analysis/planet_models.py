@@ -8,6 +8,7 @@ planets or planets outside the paper's stated rocky-planet mass/composition rang
 from __future__ import annotations
 
 from dataclasses import dataclass
+from collections.abc import Sequence
 
 import numpy as np
 from numpy.typing import NDArray
@@ -160,11 +161,27 @@ def infer_rocky_core_mass_fraction(
 
 def rocky_reference_curves(
     masses_earth: NDArray[np.float64] | None = None,
+    *,
+    core_mass_fractions: Sequence[float] = (0.0, 0.3, 0.4),
 ) -> dict[float, tuple[NDArray[np.float64], NDArray[np.float64]]]:
-    """Return PREM-based rocky radius curves for selected core mass fractions."""
-    masses = masses_earth if masses_earth is not None else np.linspace(1.0, 8.0, 200)
+    """Return rocky radius curves for valid core mass fractions.
+
+    The selected CMF values must remain inside this demonstrator's documented
+    interval of 0--0.4; the underlying fit is not extrapolated beyond it.
+    """
+    masses = (
+        np.asarray(masses_earth, dtype=float)
+        if masses_earth is not None
+        else np.linspace(ROCKY_MODEL_MIN_MASS_EARTH, ROCKY_MODEL_MAX_MASS_EARTH, 200)
+    )
+    if np.any(masses < ROCKY_MODEL_MIN_MASS_EARTH) or np.any(masses > ROCKY_MODEL_MAX_MASS_EARTH):
+        raise ValueError("Die Referenzkurven gelten hier nur für 1–8 Erdmassen.")
     curves: dict[float, tuple[NDArray[np.float64], NDArray[np.float64]]] = {}
-    for cmf in (0.0, 0.3, 0.4):
+    for cmf in core_mass_fractions:
+        if not 0.0 <= cmf <= ROCKY_MODEL_MAX_CMF:
+            raise ValueError(
+                f"CMF {cmf:g} is outside the supported interval 0–{ROCKY_MODEL_MAX_CMF:g}."
+            )
         radii = (1.07 - 0.21 * cmf) * masses ** (1.0 / 3.7)
         curves[cmf] = (masses, radii)
     return curves

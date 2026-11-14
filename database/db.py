@@ -44,6 +44,9 @@ def _migrate_star_columns(engine: Engine) -> None:
         "effective_temperature_uncertainty_minus_k": "FLOAT",
         "radius_uncertainty_plus_solar": "FLOAT",
         "radius_uncertainty_minus_solar": "FLOAT",
+        "mass_solar": "FLOAT",
+        "mass_uncertainty_plus_solar": "FLOAT",
+        "mass_uncertainty_minus_solar": "FLOAT",
         "source_url": "VARCHAR(300)",
         "data_release": "VARCHAR(40)",
     }
@@ -59,6 +62,12 @@ def _migrate_planet_columns(engine: Engine) -> None:
     additions = {
         "orbital_period_uncertainty_plus_days": "FLOAT",
         "orbital_period_uncertainty_minus_days": "FLOAT",
+        "semimajor_axis_au": "FLOAT",
+        "semimajor_axis_uncertainty_plus_au": "FLOAT",
+        "semimajor_axis_uncertainty_minus_au": "FLOAT",
+        "eccentricity": "FLOAT",
+        "eccentricity_uncertainty_plus": "FLOAT",
+        "eccentricity_uncertainty_minus": "FLOAT",
         "radius_uncertainty_plus_earth": "FLOAT",
         "radius_uncertainty_minus_earth": "FLOAT",
         "mass_uncertainty_plus_earth": "FLOAT",

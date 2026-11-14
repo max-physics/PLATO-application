@@ -1,0 +1,2 @@
+# Optional interior-composition inference; the core app remains usable without it.
+exopie==2.1.0

@@ -12,9 +12,11 @@ from analysis.planet_models import (
     derive_bulk_properties,
     infer_rocky_core_mass_fraction,
 )
+from analysis.orbital_kinematics import calculate_orbital_kinematics
 from analysis.visualization import mass_radius_figure
 from database import get_session_factory, init_db
 from models import ModelResult, ModelRun, Observation, Planet
+from ui.theme import apply_space_background
 
 
 def display_value(value: Any) -> Any:
@@ -61,6 +63,7 @@ def database_session_factory():
 
 
 st.set_page_config(page_title="Planetendetails | PLATO Lab", page_icon="🪐", layout="wide")
+apply_space_background()
 st.title("Planetendetails")
 st.page_link("app.py", label="← Zurück zur Übersicht", icon="🏠")
 
@@ -125,6 +128,16 @@ try:
                 getattr(planet, "orbital_period_uncertainty_plus_days", None),
                 getattr(planet, "orbital_period_uncertainty_minus_days", None),
             ),
+            "Große Halbachse + / − (AU)": display_uncertainty(
+                getattr(planet, "semimajor_axis_uncertainty_plus_au", None),
+                getattr(planet, "semimajor_axis_uncertainty_minus_au", None),
+            ),
+            "Große Halbachse (AU)": display_value(getattr(planet, "semimajor_axis_au", None)),
+            "Bahnexzentrizität + / −": display_uncertainty(
+                getattr(planet, "eccentricity_uncertainty_plus", None),
+                getattr(planet, "eccentricity_uncertainty_minus", None),
+            ),
+            "Bahnexzentrizität": display_value(getattr(planet, "eccentricity", None)),
             "Radius (Erdradien)": display_value(planet.radius_earth),
             "Radiusunsicherheit + / − (Erdradien)": display_uncertainty(
                 getattr(planet, "radius_uncertainty_plus_earth", None),
@@ -153,6 +166,11 @@ try:
                 getattr(star, "radius_uncertainty_plus_solar", None),
                 getattr(star, "radius_uncertainty_minus_solar", None),
             ),
+            "Sternmasse (Sonnenmassen)": display_value(getattr(star, "mass_solar", None)),
+            "Sternmassenunsicherheit + / − (Sonnenmassen)": display_uncertainty(
+                getattr(star, "mass_uncertainty_plus_solar", None),
+                getattr(star, "mass_uncertainty_minus_solar", None),
+            ),
             "Synthetisch": star.is_synthetic,
             "Herkunft": display_value(star.provenance),
             "Datenstand": display_value(getattr(star, "data_release", None)),
@@ -172,6 +190,44 @@ try:
     show_parameter_grid(planet_info)
     st.subheader("Zugehöriger Stern")
     show_parameter_grid(star_info)
+
+    st.subheader("Bahnabstand und Umlaufgeschwindigkeit")
+    orbit = calculate_orbital_kinematics(
+        orbital_period_days=planet.orbital_period_days,
+        stellar_mass_solar=getattr(star, "mass_solar", None),
+        planet_mass_earth=planet.mass_earth,
+        semimajor_axis_au=getattr(planet, "semimajor_axis_au", None),
+        eccentricity=getattr(planet, "eccentricity", None),
+    )
+    if orbit.semimajor_axis_au is None:
+        st.info("Für eine Bahnnäherung fehlen große Halbachse bzw. Umlaufperiode und Sternmasse.")
+    else:
+        orbit_columns = st.columns(3)
+        orbit_columns[0].metric("Große Halbachse a", f"{orbit.semimajor_axis_au:.4g} AU")
+        orbit_columns[1].metric(
+            "Kreisbahn-Geschwindigkeit bei a",
+            f"{orbit.circular_speed_km_s:.4g} km/s" if orbit.circular_speed_km_s is not None else "unbekannt",
+        )
+        if orbit.periastron_distance_au is not None:
+            orbit_columns[2].metric(
+                "Periastron bis Apoastron",
+                f"{orbit.periastron_distance_au:.4g}–{orbit.apastron_distance_au:.4g} AU",
+            )
+            speed_columns = st.columns(2)
+            speed_columns[0].metric(
+                "Geschwindigkeit am Periastron",
+                f"{orbit.periastron_speed_km_s:.4g} km/s" if orbit.periastron_speed_km_s is not None else "unbekannt",
+            )
+            speed_columns[1].metric(
+                "Geschwindigkeit am Apoastron",
+                f"{orbit.apastron_speed_km_s:.4g} km/s" if orbit.apastron_speed_km_s is not None else "unbekannt",
+            )
+        st.caption(
+            f"Abstand: {orbit.semimajor_axis_source}. Die Kreisbahngeschwindigkeit ist eine Näherung. "
+            "Wenn die Exzentrizität vorliegt, zeigen Periastron und Apoastron die modellierten Extremwerte "
+            "der Entfernung und Geschwindigkeit. Messunsicherheiten werden für diese abgeleiteten Werte "
+            "noch nicht fortgepflanzt."
+        )
 
     st.subheader("1. Abgeleitete Dichte und Oberflächengravitation")
     derived = derive_bulk_properties(

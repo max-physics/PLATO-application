@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from math import log10
 from typing import Any
 
 import plotly.graph_objects as go
@@ -11,7 +12,11 @@ from analysis.planet_models import rocky_reference_curves
 
 
 def mass_radius_figure(
-    planets: Sequence[Mapping[str, Any]], *, include_rocky_references: bool = False
+    planets: Sequence[Mapping[str, Any]],
+    *,
+    include_rocky_references: bool = False,
+    rocky_core_mass_fractions: Sequence[float] | None = None,
+    mass_axis_range: tuple[float, float] | None = None,
 ) -> go.Figure:
     """Build a logarithmic mass-radius chart with selectable planet points.
 
@@ -19,14 +24,17 @@ def mass_radius_figure(
     asymmetric ``mass_plus/minus`` and ``radius_plus/minus`` uncertainty fields.
     """
     figure = go.Figure()
-    if include_rocky_references:
-        for cmf, (curve_mass, curve_radius) in rocky_reference_curves().items():
+    if include_rocky_references or rocky_core_mass_fractions is not None:
+        core_mass_fractions = rocky_core_mass_fractions or (0.0, 0.3, 0.4)
+        for cmf, (curve_mass, curve_radius) in rocky_reference_curves(
+            core_mass_fractions=core_mass_fractions
+        ).items():
             figure.add_trace(
                 go.Scatter(
                     x=curve_mass,
                     y=curve_radius,
                     mode="lines",
-                    name=f"Gesteinsreferenz, CMF {cmf:.1f}",
+                    name=f"Gesteinsreferenz, CMF {cmf:.0%}",
                     hovertemplate="Masse: %{x:.2f} M⊕<br>Radius: %{y:.2f} R⊕<extra>%{fullData.name}</extra>",
                 )
             )
@@ -80,8 +88,15 @@ def mass_radius_figure(
 
     add_planet_trace(with_errors, errors=True)
     add_planet_trace(without_errors, errors=False)
+    xaxis = {"title": "Masse (Erdenmassen)", "type": "log"}
+    if mass_axis_range is not None:
+        lower_mass, upper_mass = mass_axis_range
+        if lower_mass <= 0 or upper_mass <= lower_mass:
+            raise ValueError("Die Grenzen der Masse-Achse müssen positiv und aufsteigend sein.")
+        xaxis["range"] = [log10(lower_mass), log10(upper_mass)]
+
     figure.update_layout(
-        xaxis={"title": "Masse (Erdenmassen)", "type": "log"},
+        xaxis=xaxis,
         yaxis={"title": "Radius (Erdradien)", "type": "log"},
         legend_title="Daten / Modellkurve",
         height=560,
