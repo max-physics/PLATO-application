@@ -6,7 +6,7 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from models import DataProduct, ModelResult, ModelRun, Observation, Planet, Star
+from models import DataProduct, Observation, Planet, Star
 
 SYNTHETIC_SOURCE = "SYNTHETIC DEMO DATA — invented for PLATO Scientific Data Analysis Lab"
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -30,12 +30,7 @@ def seed_demo_data(session: Session) -> None:
     session.flush()
     observation = Observation(planet=planet, product=l2, observable="transit_depth", value=320.0,
                               uncertainty=18.0, unit="ppm", is_synthetic=True, provenance=SYNTHETIC_SOURCE)
-    run = ModelRun(run_key="SYNTH-RUN-001", planet=planet, input_product=l3,
-                   model_name="structure-model-placeholder", model_version="0.1.0",
-                   status="prepared", is_synthetic=True,
-                   notes="Synthetic placeholder only; no numerical interior model was run.")
-    run.results.append(ModelResult(parameter="bulk_density", value=4.9, uncertainty=0.7, unit="g/cm^3"))
-    session.add_all([observation, run])
+    session.add(observation)
     session.commit()
 
 

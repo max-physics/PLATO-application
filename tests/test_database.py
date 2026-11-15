@@ -28,6 +28,7 @@ def test_init_db_creates_schema_and_synthetic_demo_data(tmp_path):
             assert all(planet.source_url and planet.data_release for planet in public_planets)
             assert all(planet.star is not None and not planet.star.is_synthetic for planet in public_planets)
             assert all(planet.mass_earth is not None for planet in public_planets)
+            assert sum(planet.radius_earth is not None for planet in public_planets) == 999
             orbit_planet = session.scalar(
                 select(Planet).where(Planet.semimajor_axis_au.is_not(None))
             )
@@ -38,6 +39,22 @@ def test_init_db_creates_schema_and_synthetic_demo_data(tmp_path):
             assert {product.level for product in products} == {"L2", "L3"}
             assert all(product.is_synthetic for product in products)
             assert session.scalar(select(Observation)) is not None
-            run = session.scalar(select(ModelRun))
-            assert run is not None and run.is_synthetic
-            assert session.scalar(select(ModelResult).w
+            assert session.scalar(select(ModelRun)) is None
+            assert session.scalar(select(ModelResult)) is None
+    finally:
+        engine.dispose()
+
+
+def test_init_db_is_idempotent(tmp_path):
+    url = f"sqlite:///{tmp_path / 'repeat.db'}"
+    engine = init_db(url)
+    sessions = get_session_factory(engine)
+    with sessions() as session:
+        before = session.query(Star).count()
+    engine.dispose()
+
+    engine = init_db(url)
+    with get_session_factory(engine)() as session:
+        assert session.query(Star).count() == before
+        assert session.query(Planet).filter(Planet.is_synthetic.is_(False)).count() == 1000
+    engine.dispose()

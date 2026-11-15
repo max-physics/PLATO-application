@@ -10,7 +10,6 @@ from analysis.planet_models import (
     rocky_reference_curves,
 )
 from analysis.visualization import mass_radius_figure, selected_planet_id
-from analysis.exopie_adapter import run_exopie_rocky_inference
 
 
 def test_earth_reference_derived_properties():
@@ -104,75 +103,3 @@ def test_selected_planet_id_extracts_plotly_customdata():
     )
     assert selected_planet_id(event) == 42
     assert selected_planet_id(SimpleNamespace(selection=SimpleNamespace(points=[]))) is None
-
-
-def test_exopie_adapter_summarizes_rocky_model_output(monkeypatch):
-    captured = {}
-
-    class FakePlanet:
-        CMF = np.array([0.20, 0.30, 0.40])
-        FeMF = np.array([0.25, 0.35, 0.45])
-
-        def run(self):
-            return None
-
-    def fake_planet(**kwargs):
-        captured.update(kwargs)
-        return FakePlanet()
-
-    monkeypatch.setattr("analysis.exopie_adapter.import_module", lambda _name: SimpleNamespace(planet=fake_planet))
-    result = run_exopie_rocky_inference(2.0, 1.2, 0.2, 0.1, 0.1, 0.1, samples=1000)
-
-    assert len(captured["Mass"]) == len(captured["Radius"]) == 1000
-    assert isinstance(captured["Mass"], np.ndarray)
-    assert captured["planet_type"] == "rocky"
-    assert captured["xSi"] == [0.0, 0.2]
-    assert captured["xFe"] == [0.0, 0.2]
-    assert result.core_mass_fraction.value == pytest.approx(0.30)
-    assert result.iron_mass_fraction.value == pytest.approx(0.35)
-    assert result.accepted_samples == 3
-    assert result.requested_samples == 1000
-
-
-def test_exopie_adapter_filters_mass_draws_outside_exopie_grid(monkeypatch):
-    captured = {}
-
-    class FakePlanet:
-        CMF = np.array([0.2, 0.3, 0.4])
-        FeMF = np.array([0.2, 0.3, 0.4])
-
-        def run(self):
-            return self
-
-    def fake_planet(**kwargs):
-        captured.update(kwargs)
-        return FakePlanet()
-
-    monkeypatch.setattr("analysis.exopie_adapter.import_module", lambda _name: SimpleNamespace(planet=fake_planet))
-    result = run_exopie_rocky_inference(0.2, 0.9, 0.3, 0.3, 0.05, 0.05, samples=1000)
-
-    assert 0 < len(captured["Mass"]) < 1000
-    assert len(captured["Mass"]) == len(captured["Radius"])
-    assert np.all(captured["Mass"] > 0.01)
-    assert result.requested_samples == 1000
-
-
-def test_exopie_adapter_rejects_invalid_measurements_before_import():
-    with pytest.raises(ValueError, match="positiv"):
-        run_exopie_rocky_inference(0, 1.0, 0.1, 0.1, 0.1, 0.1)
-    with pytest.raises(ValueError, match="19.95 Erdmassen"):
-        run_exopie_rocky_inference(20.0, 2.0, 0.1, 0.1, 0.1, 0.1)
-    with pytest.raises(ValueError, match="mindestens 50"):
-        run_exopie_rocky_inference(1, 1.0, 0.1, 0.1, 0.1, 0.1, samples=20)
-
-
-def test_exopie_adapter_translates_no_rocky_solution_into_actionable_error(monkeypatch):
-    class NoRockySolution:
-        def run(self):
-            raise Exception("Wrong planet type, no M-R pair in bounds")
-
-    fake_exopie = SimpleNamespace(planet=lambda **_kwargs: NoRockySolution())
-    monkeypatch.setattr("analysis.exopie_adapter.import_module", lambda _name: fake_exopie)
-
-    with pytest.raises(RuntimeError, match="Probiere zunächst Gliese 12 b"):
-        run_exopie_rocky_inference(2.0, 1.5, 0.1, 0.1, 0.1, 0.1, samples=50)

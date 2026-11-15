@@ -16,7 +16,6 @@ Eigenständiger wissenschaftlicher Softwaredemonstrator für die Exploration ast
 - Erste Datenbanktests mit einer isolierten temporären SQLite-Datenbank
 - Abgeleitete Dichte und Oberflächengravitation mit optionaler Unsicherheitsfortpflanzung
 - Masse-Radius-Diagramm und eingeschränkte felsige Zwei-Schichten-Näherung
-- Optionaler ExoPie-Vergleich für felsige Innenstrukturen mit sichtbaren Modellannahmen
 - Bahndistanz und Kreisbahn-Geschwindigkeit; bei verfügbarer Exzentrizität auch Periastron-/Apoastron-Abstand und -Geschwindigkeit
 
 Die Innenstrukturresultate sind Demonstrator-Näherungen. Die felsige Zwei-Schichten-Kurve nach Zeng et al. (2016) wird hier nur im begrenzten Bereich von 1–8 Erdmassen und CMF 0–0,4 verwendet; sie ersetzt keine vollständige thermodynamische Innenstrukturanalyse.
@@ -28,10 +27,9 @@ Die Innenstrukturresultate sind Demonstrator-Näherungen. Die felsige Zwei-Schic
 - Messunsicherheiten werden mit 20.000 unabhängigen Monte-Carlo-Ziehungen aus asymmetrischen Fehlerverteilungen fortgepflanzt. Fehlt eine benötigte Eingangsunsicherheit, wird nur der Zentralwert berechnet.
 - Das logarithmische Masse-Radius-Diagramm auf der Startseite zeigt Katalogplaneten. Ein Klick öffnet die Detailseite.
 - Unter dem Diagramm zeigt der Bereich „Modelle“ abgeleitete Dichte und Oberflächengravitation sowie das felsige Zwei-Schichten-Modell. Ein CMF-Regler reicht von 0 bis 100 %; die Kurve erscheint ausschließlich im dokumentierten Modellbereich CMF 0–40 % und 1–8 Erdmassen.
-- Die optionale Zwei-Schichten-Näherung invertiert die Beziehung von [Zeng et al. (2016)](https://doi.org/10.3847/0004-637X/819/2/127), nimmt einen Eisenkern und Silikatmantel an und gilt nur für 1–8 Erdmassen sowie CMF 0–0,4. Sie ist keine eindeutige Messung der tatsächlichen Zusammensetzung.
-- **ExoPie ist eine optionale Abhängigkeit** (`python -m pip install -r requirements-exopie.txt`). Die App nutzt dessen `rocky`-Planetmodell mit Katalogmasse und -radius samt asymmetrischen Fehlern. Masse und Radius werden unabhängig gezogen, weil der Katalog keine Kovarianz bereitstellt; die Stichprobenzahl ist dadurch exakt wie angefordert. Die Priorbereiche sind `xSi = 0–0,2` (Siliziumanteil im Kern) und `xFe = 0–0,2` (Eisenanteil im Mantel); die Zahl der Ziehungen ist in der Oberfläche wählbar. Der Standard von 50 Ziehungen ist nur eine schnelle Vorschau und liefert keine stabilen wissenschaftlichen Perzentile; für eine belastbarere Auswertung muss die Zahl erhöht werden. Die angezeigten Intervalle sind das 16., 50. und 84. Perzentil der vom Modell akzeptierten Ziehungen.
-- ExoPies `planet-star`-Ansatz wird vorerst **nicht** gerechnet: Dafür erforderliche stellare Fe/Mg/Si-Häufigkeiten liegen in unserem lokalen Katalog nicht vor. Werte oder Fehler werden nicht ergänzt oder geschätzt. Der ExoPie-Reiter bleibt für einen Planeten ohne vollständige Masse-/Radiusfehler deaktiviert.
-- **Gültigkeit:** Dieses ExoPie-Ergebnis ist eine bedingte Inferenz, keine eindeutige Innenstrukturmessung. Es gilt nur für die gewählte felsige Modellklasse und die angezeigten Prioren. Wasserreiche Welten und H/He-Hüllen brauchen andere Modellklassen und Annahmen; sie sind in dieser ersten Anbindung nicht enthalten. Siehe [ExoPie User Guide](https://exopie.readthedocs.io/en/latest/user_guide.html), [ExoPie auf PyPI](https://pypi.org/project/exopie/) und Plotnykov & Valencia (2024), [MNRAS, doi:10.1093/mnras/stae993](https://doi.org/10.1093/mnras/stae993).
+- **Ein einziges Innenstrukturmodell:** Die App invertiert die semi-empirische PREM-basierte Näherung aus [Zeng, Sasselov & Jacobsen (2016)](https://doi.org/10.3847/0004-637X/819/2/127): `R/R⊕ = (1.07 − 0.21·CMF) · (M/M⊕)^(1/3.7)`. CMF ist der Eisenkern-Massenanteil. Das Zwei-Schichten-Modell nimmt einen Eisenkern und Silikatmantel ohne Wasser- oder H/He-Hülle an. Der im Artikel genannte Gültigkeitsbereich von 1–8 Erdmassen und CMF 0–0,4 wird eingehalten; außerhalb dieses Bereichs wird die Kurve nicht extrapoliert.
+- **Unsicherheiten und Grenzen:** Bei vollständigen Fehlerangaben werden 20.000 unabhängige Monte-Carlo-Ziehungen für Masse und Radius verwendet. Masse und Radius werden mangels Katalogkovarianz unabhängig behandelt; unzulässige Ziehungen außerhalb des Gültigkeitsbereichs werden verworfen. Angezeigte Intervalle berücksichtigen Messfehler, aber nicht den zusätzlichen Näherungsfehler der publizierten Fitformel (im Artikel etwa 0,01 Erdradien bzw. ungefähr 0,02 CMF). Die CMF ist eine modellabhängige Schätzung, keine eindeutige Messung der tatsächlichen Zusammensetzung.
+- Die CMF-Regler-Skala reicht zur Exploration von 0 bis 100 %. Die Zeng-Modellkurve wird jedoch nur im veröffentlichten Bereich CMF 0–40 % und 1–8 Erdmassen gezeigt.
 - **Bahnnäherung:** Die Detailseite zeigt die große Halbachse aus dem Katalog oder leitet sie, falls nötig, mit Umlaufperiode und Sternmasse aus Keplers drittem Gesetz ab. Die Kreisbahngeschwindigkeit wird aus Stern-/Planetenmasse und großer Halbachse berechnet. Wenn die Exzentrizität vorliegt, kommen Periastron-/Apoastron-Abstand und die zugehörigen Geschwindigkeiten nach der Vis-Viva-Gleichung hinzu. Das sind Zentralwert-Näherungen; Messunsicherheiten der Bahngrößen werden dabei noch nicht fortgepflanzt.
 - Berechnete Werte lassen sich als Modelllauf samt Version und Unsicherheiten in `model_runs` und `model_results` speichern.
 
@@ -46,7 +44,7 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Beim ersten Start wird `data/plato_demo.db` angelegt und mit einem synthetischen Demonstrationsplaneten sowie 1.000 bestätigten Exoplaneten initialisiert. Die öffentlichen Datensätze liegen statisch in `data/public_confirmed_planets.csv`; die App fragt beim Start keine externen Datenquellen ab. Die Planeten stammen aus der Tabelle *Planetary Systems Composite Parameters* des [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/), abgerufen am 14. November 2026. Der Snapshot enthält 1.000 eindeutige Planeten mit bekannten Masse- und Radiuswerten; dafür wurden `pl_controv_flag=0`, Masse und Radius ungleich `NULL` abgefragt. Seit dem ursprünglichen 50-Planeten-Bestand wurden 950 weitere Namen alphabetisch aus dem öffentlichen Katalog ergänzt. Übernommene Werte umfassen Umlaufperiode, Radius und Masse, Sternmasse, große Halbachse und Exzentrizität sowie jeweils verfügbare Unsicherheiten. Fehlende Parameter oder Fehlerwerte bleiben leer. Jeder Planet ist mit seinem Hoststern verknüpft. `is_synthetic=False`, `provenance`, `source_url` und `data_release` kennzeichnen und dokumentieren die öffentlichen Datensätze.
+Beim ersten Start wird `data/plato_demo.db` angelegt und mit einem synthetischen Demonstrationsplaneten sowie 1.000 bestätigten Exoplaneten initialisiert. Die öffentlichen Datensätze liegen statisch in `data/public_confirmed_planets.csv`; die App fragt beim Start keine externen Datenquellen ab. Die Planeten stammen aus der Tabelle *Planetary Systems Composite Parameters* des [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/), abgerufen am 14. November 2026. Der Snapshot enthält 1.000 eindeutige Planeten. Masse ist bei allen vorhanden, Radius bei 999; bei HD 7199 b fehlt der Katalogradius und er bleibt deshalb unbekannt. Übernommene Werte umfassen Umlaufperiode, Radius und Masse, Sternmasse, große Halbachse und Exzentrizität sowie jeweils verfügbare Unsicherheiten. Fehlende Parameter oder Fehlerwerte bleiben leer. Jeder Planet ist mit seinem Hoststern verknüpft. `is_synthetic=False`, `provenance`, `source_url` und `data_release` kennzeichnen und dokumentieren die öffentlichen Datensätze.
 
 Zum Zurücksetzen kann die lokale Datei `data/plato_demo.db` gelöscht werden; beim nächsten Start wird sie aus den mitgelieferten statischen Beispieldateien neu erzeugt. Der öffentliche Snapshot ist in [data/public_confirmed_planets.csv](data/public_confirmed_planets.csv) abgelegt.
 
@@ -70,6 +68,18 @@ Die Datenbank wird beim Import nicht automatisch erstellt. `database.init_db()` 
 ```bash
 pytest
 ```
+
+## Projektdokumentation
+
+Eine leere [LaTeX-Vorlage](docs/projektdokumentation.tex) für die eigene
+technische und wissenschaftliche Dokumentation liegt im Projekt. Mit einer installierten
+LaTeX-Distribution lässt sie sich im Projektordner beispielsweise so bauen:
+
+```bash
+pdflatex -output-directory=/tmp docs/projektdokumentation.tex
+```
+
+Für Inhaltsverzeichnis und Querverweise den Befehl ein zweites Mal ausführen.
 
 ## Projektstruktur
 
