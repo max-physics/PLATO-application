@@ -71,9 +71,10 @@ pytest
 
 ## Projektdokumentation
 
-Eine leere [LaTeX-Vorlage](docs/projektdokumentation.tex) für die eigene
-technische und wissenschaftliche Dokumentation liegt im Projekt. Mit einer installierten
-LaTeX-Distribution lässt sie sich im Projektordner beispielsweise so bauen:
+Die vollständige technische und wissenschaftliche Projektdokumentation wird
+bis Freitag, 20. November 2026, fertiggestellt. Die [LaTeX-Datei](docs/projektdokumentation.tex)
+kann mit einer installierten LaTeX-Distribution im Projektordner beispielsweise
+so gebaut werden:
 
 ```bash
 pdflatex -output-directory=/tmp docs/projektdokumentation.tex
