@@ -98,7 +98,7 @@ def mass_radius_figure(
     figure.update_layout(
         xaxis=xaxis,
         yaxis={"title": "Radius (Earth radii)", "type": "log"},
-        legend_title="Data / model curve",
+        legend_title_text="",
         height=560,
         margin={"t": 20},
         clickmode="event+select",
