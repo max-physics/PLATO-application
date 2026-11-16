@@ -52,7 +52,7 @@ def calculate_orbital_kinematics(
         planet_mass_kg *= EARTH_MASS_KG
 
     axis = _positive_finite(semimajor_axis_au)
-    axis_source: str | None = "NASA-Katalogwert" if axis is not None else None
+    axis_source: str | None = "NASA catalogue value" if axis is not None else None
     total_mass_kg = (
         star_mass_kg + (planet_mass_kg or 0.0)
         if star_mass_kg is not None
@@ -67,7 +67,7 @@ def calculate_orbital_kinematics(
             / (4.0 * pi**2)
         ) ** (1.0 / 3.0)
         axis = axis_m / ASTRONOMICAL_UNIT_M
-        axis_source = "aus Umlaufperiode und Sternmasse nach Kepler III abgeleitet"
+        axis_source = "derived from orbital period and stellar mass using Kepler's third law"
 
     if axis is None:
         return OrbitalKinematics(None, None, None, None, None, None, None)

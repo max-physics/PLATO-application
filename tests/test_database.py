@@ -8,9 +8,9 @@ from models import DataProduct, ModelResult, ModelRun, Observation, Planet, Star
 
 
 def test_missing_scientific_values_are_rendered_as_unknown():
-    assert display_value(None) == "unbekannt"
-    assert display_uncertainty(None, None) == "unbekannt"
-    assert display_uncertainty(0.2, None) == "+ 0.2 / − unbekannt"
+    assert display_value(None) == "Unknown"
+    assert display_uncertainty(None, None) == "Unknown"
+    assert display_uncertainty(0.2, None) == "+ 0.2 / − Unknown"
 
 
 def test_init_db_creates_schema_and_synthetic_demo_data(tmp_path):

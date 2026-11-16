@@ -22,7 +22,7 @@ from ui.theme import apply_space_background
 def display_value(value: Any) -> Any:
     """Display absent catalog values explicitly instead of as blank cells."""
     if value is None or value == "" or (isinstance(value, float) and isnan(value)):
-        return "unbekannt"
+        return "Unknown"
     return value
 
 
@@ -30,8 +30,8 @@ def display_uncertainty(plus: Any, minus: Any) -> str:
     """Format both sides of an asymmetric uncertainty, including missing sides."""
     plus_text = display_value(plus)
     minus_text = display_value(minus)
-    if plus_text == "unbekannt" and minus_text == "unbekannt":
-        return "unbekannt"
+    if plus_text == "Unknown" and minus_text == "Unknown":
+        return "Unknown"
     return f"+ {plus_text} / − {minus_text}"
 
 
@@ -40,10 +40,10 @@ def display_estimate(value: Any, plus: Any, minus: Any, unit: str) -> str:
     value = display_value(value)
     plus = display_value(plus)
     minus = display_value(minus)
-    if value == "unbekannt":
+    if value == "Unknown":
         return value
-    if plus == "unbekannt" and minus == "unbekannt":
-        return f"{value:.4g} {unit} (Unsicherheit unbekannt)"
+    if plus == "Unknown" and minus == "Unknown":
+        return f"{value:.4g} {unit} (uncertainty unknown)"
     return f"{value:.4g} +{plus}/−{minus} {unit}"
 
 
@@ -62,15 +62,15 @@ def database_session_factory():
     return get_session_factory(init_db())
 
 
-st.set_page_config(page_title="Planetendetails | PLATO Lab", page_icon="🪐", layout="wide")
+st.set_page_config(page_title="Planet details | PLATO Application Demo", page_icon="🪐", layout="wide")
 apply_space_background()
-st.title("Planetendetails")
-st.page_link("app.py", label="← Zurück zur Übersicht", icon="🏠")
+st.title("Planet details")
+st.page_link("app.py", label="← Back to home", icon="🏠")
 
 planet_id = st.session_state.get("selected_planet_id")
 if planet_id is None:
-    st.info("Bitte wähle einen Planeten über die Suche auf der Startseite aus.")
-    st.page_link("app.py", label="Zur Planetensuche")
+    st.info("Select a planet using the search on the home page.")
+    st.page_link("app.py", label="Go to planet search")
     st.stop()
 
 try:
@@ -80,7 +80,7 @@ try:
             select(Planet).where(Planet.id == planet_id)
         )
         if planet is None:
-            st.warning("Der ausgewählte Planet ist in der Datenbank nicht mehr vorhanden.")
+            st.warning("The selected planet is no longer in the database.")
             st.stop()
 
         # Load linked rows while the session is open so the page does not depend
@@ -108,90 +108,90 @@ try:
         ]
         observation_rows = [
             {
-                "Messgröße": observation.observable,
-                "Wert": display_value(observation.value),
-                "Unsicherheit": display_value(observation.uncertainty),
-                "Einheit": display_value(observation.unit),
-                "Datenprodukt": display_value(observation.product.product_key if observation.product else None),
-                "Stufe": display_value(observation.product.level if observation.product else None),
-                "Produktversion": display_value(observation.product.version if observation.product else None),
-                "Herkunft": display_value(observation.provenance),
-                "Synthetisch": observation.is_synthetic,
+                "Observable": observation.observable,
+                "Value": display_value(observation.value),
+                "Uncertainty": display_value(observation.uncertainty),
+                "Unit": display_value(observation.unit),
+                "Data product": display_value(observation.product.product_key if observation.product else None),
+                "Level": display_value(observation.product.level if observation.product else None),
+                "Product version": display_value(observation.product.version if observation.product else None),
+                "Provenance": display_value(observation.provenance),
+                "Synthetic": observation.is_synthetic,
             }
             for observation in observations
         ]
         planet_info = {
             "Name": planet.name,
-            "Katalog-ID": planet.catalog_id,
-            "Umlaufperiode (Tage)": display_value(planet.orbital_period_days),
-            "Umlaufperioden-Unsicherheit + / − (Tage)": display_uncertainty(
+            "Catalogue ID": planet.catalog_id,
+            "Orbital period (days)": display_value(planet.orbital_period_days),
+            "Orbital period uncertainty + / − (days)": display_uncertainty(
                 getattr(planet, "orbital_period_uncertainty_plus_days", None),
                 getattr(planet, "orbital_period_uncertainty_minus_days", None),
             ),
-            "Große Halbachse + / − (AU)": display_uncertainty(
+            "Semimajor axis uncertainty + / − (AU)": display_uncertainty(
                 getattr(planet, "semimajor_axis_uncertainty_plus_au", None),
                 getattr(planet, "semimajor_axis_uncertainty_minus_au", None),
             ),
-            "Große Halbachse (AU)": display_value(getattr(planet, "semimajor_axis_au", None)),
-            "Bahnexzentrizität + / −": display_uncertainty(
+            "Semimajor axis (AU)": display_value(getattr(planet, "semimajor_axis_au", None)),
+            "Eccentricity uncertainty + / −": display_uncertainty(
                 getattr(planet, "eccentricity_uncertainty_plus", None),
                 getattr(planet, "eccentricity_uncertainty_minus", None),
             ),
-            "Bahnexzentrizität": display_value(getattr(planet, "eccentricity", None)),
-            "Radius (Erdradien)": display_value(planet.radius_earth),
-            "Radiusunsicherheit + / − (Erdradien)": display_uncertainty(
+            "Eccentricity": display_value(getattr(planet, "eccentricity", None)),
+            "Radius (Earth radii)": display_value(planet.radius_earth),
+            "Radius uncertainty + / − (Earth radii)": display_uncertainty(
                 getattr(planet, "radius_uncertainty_plus_earth", None),
                 getattr(planet, "radius_uncertainty_minus_earth", None),
             ),
-            "Masse (Erdmassen)": display_value(planet.mass_earth),
-            "Massenunsicherheit + / − (Erdmassen)": display_uncertainty(
+            "Mass (Earth masses)": display_value(planet.mass_earth),
+            "Mass uncertainty + / − (Earth masses)": display_uncertainty(
                 getattr(planet, "mass_uncertainty_plus_earth", None),
                 getattr(planet, "mass_uncertainty_minus_earth", None),
             ),
-            "Synthetisch": planet.is_synthetic,
-            "Herkunft": display_value(planet.provenance),
-            "Datenstand": display_value(getattr(planet, "data_release", None)),
-            "Quelle": display_value(getattr(planet, "source_url", None)),
+            "Synthetic": planet.is_synthetic,
+            "Provenance": display_value(planet.provenance),
+            "Data release": display_value(getattr(planet, "data_release", None)),
+            "Source": display_value(getattr(planet, "source_url", None)),
         }
         star_info = {
-            "Stern": star.name,
-            "Stern-Katalog-ID": star.catalog_id,
-            "Effektive Temperatur (K)": display_value(star.effective_temperature_k),
-            "Temperaturunsicherheit + / − (K)": display_uncertainty(
+            "Host star": star.name,
+            "Star catalogue ID": star.catalog_id,
+            "Effective temperature (K)": display_value(star.effective_temperature_k),
+            "Temperature uncertainty + / − (K)": display_uncertainty(
                 getattr(star, "effective_temperature_uncertainty_plus_k", None),
                 getattr(star, "effective_temperature_uncertainty_minus_k", None),
             ),
-            "Sternradius (Sonnenradien)": display_value(star.radius_solar),
-            "Radiusunsicherheit + / − (Sonnenradien)": display_uncertainty(
+            "Stellar radius (Solar radii)": display_value(star.radius_solar),
+            "Radius uncertainty + / − (Solar radii)": display_uncertainty(
                 getattr(star, "radius_uncertainty_plus_solar", None),
                 getattr(star, "radius_uncertainty_minus_solar", None),
             ),
-            "Sternmasse (Sonnenmassen)": display_value(getattr(star, "mass_solar", None)),
-            "Sternmassenunsicherheit + / − (Sonnenmassen)": display_uncertainty(
+            "Stellar mass (Solar masses)": display_value(getattr(star, "mass_solar", None)),
+            "Stellar mass uncertainty + / − (Solar masses)": display_uncertainty(
                 getattr(star, "mass_uncertainty_plus_solar", None),
                 getattr(star, "mass_uncertainty_minus_solar", None),
             ),
-            "Synthetisch": star.is_synthetic,
-            "Herkunft": display_value(star.provenance),
-            "Datenstand": display_value(getattr(star, "data_release", None)),
-            "Quelle": display_value(getattr(star, "source_url", None)),
+            "Synthetic": star.is_synthetic,
+            "Provenance": display_value(star.provenance),
+            "Data release": display_value(getattr(star, "data_release", None)),
+            "Source": display_value(getattr(star, "source_url", None)),
         }
 
     st.header(planet_info["Name"])
-    st.caption(f"Katalog-ID: {planet_info['Katalog-ID']}")
+    st.caption(f"Catalogue ID: {planet_info['Catalogue ID']}")
     st.info(
-        "Öffentliche Katalogwerte sind mit ihrer Quelle gekennzeichnet. "
-        "Der Demo-Datensatz ist ausdrücklich synthetisch und keine PLATO-Messung."
+        "Public catalogue values include their source. The demo dataset is explicitly synthetic "
+        "and does not contain PLATO measurements."
     )
     if st.session_state.pop("analysis_saved_notice", False):
-        st.success("Die Analyseergebnisse wurden gespeichert.")
+        st.success("Analysis results saved.")
 
-    st.subheader("Planetenparameter")
+    st.subheader("Planet parameters")
     show_parameter_grid(planet_info)
-    st.subheader("Zugehöriger Stern")
+    st.subheader("Host star")
     show_parameter_grid(star_info)
 
-    st.subheader("Bahnabstand und Umlaufgeschwindigkeit")
+    st.subheader("Orbital distance and velocity")
     orbit = calculate_orbital_kinematics(
         orbital_period_days=planet.orbital_period_days,
         stellar_mass_solar=getattr(star, "mass_solar", None),
@@ -200,36 +200,35 @@ try:
         eccentricity=getattr(planet, "eccentricity", None),
     )
     if orbit.semimajor_axis_au is None:
-        st.info("Für eine Bahnnäherung fehlen große Halbachse bzw. Umlaufperiode und Sternmasse.")
+        st.info("Semimajor axis or orbital period and stellar mass are missing for an orbital estimate.")
     else:
         orbit_columns = st.columns(3)
-        orbit_columns[0].metric("Große Halbachse a", f"{orbit.semimajor_axis_au:.4g} AU")
+        orbit_columns[0].metric("Semimajor axis a", f"{orbit.semimajor_axis_au:.4g} AU")
         orbit_columns[1].metric(
-            "Kreisbahn-Geschwindigkeit bei a",
-            f"{orbit.circular_speed_km_s:.4g} km/s" if orbit.circular_speed_km_s is not None else "unbekannt",
+            "Circular orbital speed at a",
+            f"{orbit.circular_speed_km_s:.4g} km/s" if orbit.circular_speed_km_s is not None else "Unknown",
         )
         if orbit.periastron_distance_au is not None:
             orbit_columns[2].metric(
-                "Periastron bis Apoastron",
+                "Periastron to apoastron distance",
                 f"{orbit.periastron_distance_au:.4g}–{orbit.apastron_distance_au:.4g} AU",
             )
             speed_columns = st.columns(2)
             speed_columns[0].metric(
-                "Geschwindigkeit am Periastron",
-                f"{orbit.periastron_speed_km_s:.4g} km/s" if orbit.periastron_speed_km_s is not None else "unbekannt",
+                "Speed at periastron",
+                f"{orbit.periastron_speed_km_s:.4g} km/s" if orbit.periastron_speed_km_s is not None else "Unknown",
             )
             speed_columns[1].metric(
-                "Geschwindigkeit am Apoastron",
-                f"{orbit.apastron_speed_km_s:.4g} km/s" if orbit.apastron_speed_km_s is not None else "unbekannt",
+                "Speed at apoastron",
+                f"{orbit.apastron_speed_km_s:.4g} km/s" if orbit.apastron_speed_km_s is not None else "Unknown",
             )
         st.caption(
-            f"Abstand: {orbit.semimajor_axis_source}. Die Kreisbahngeschwindigkeit ist eine Näherung. "
-            "Wenn die Exzentrizität vorliegt, zeigen Periastron und Apoastron die modellierten Extremwerte "
-            "der Entfernung und Geschwindigkeit. Messunsicherheiten werden für diese abgeleiteten Werte "
-            "noch nicht fortgepflanzt."
+            f"Distance source: {orbit.semimajor_axis_source}. Circular speed is an approximation. "
+            "When eccentricity is available, periastron and apoastron show the estimated extreme "
+            "distances and speeds. Measurement uncertainties are not propagated for these derived values."
         )
 
-    st.subheader("1. Abgeleitete Dichte und Oberflächengravitation")
+    st.subheader("1. Derived density and surface gravity")
     derived = derive_bulk_properties(
         planet.mass_earth,
         planet.radius_earth,
@@ -240,7 +239,7 @@ try:
     )
     density_column, gravity_column = st.columns(2)
     density_column.metric(
-        "Mittlere Dichte",
+        "Mean density",
         display_estimate(
             derived.bulk_density.value,
             derived.bulk_density.uncertainty_plus,
@@ -249,7 +248,7 @@ try:
         ),
     )
     gravity_column.metric(
-        "Oberflächengravitation",
+        "Surface gravity",
         display_estimate(
             derived.surface_gravity.value,
             derived.surface_gravity.uncertainty_plus,
@@ -258,11 +257,12 @@ try:
         ),
     )
     st.caption(
-        "Aus Masse und Radius in Erdmassen bzw. Erdradien berechnet. "
-        "Fehlerintervalle erscheinen nur, wenn alle vier Eingangsunsicherheiten bekannt sind."
+        "Calculated from mass and radius in Earth units. When all four asymmetric input "
+        "uncertainties are available, 20,000 independent mass-radius samples are drawn; "
+        "density and gravity are recalculated for each sample to propagate measurement errors."
     )
 
-    st.subheader("2. Zwei-Schichten-Modell: Eisenkern und Silikatmantel")
+    st.subheader("2. Two-layer model: iron core and silicate mantle")
     core_estimate = infer_rocky_core_mass_fraction(
         planet.mass_earth,
         planet.radius_earth,
@@ -277,28 +277,29 @@ try:
         plus_percent = estimate.uncertainty_plus * 100 if estimate.uncertainty_plus is not None else None
         minus_percent = estimate.uncertainty_minus * 100 if estimate.uncertainty_minus is not None else None
         st.metric(
-            "Geschätzter Eisenkern-Massenanteil (CMF)",
+            "Estimated iron core mass fraction (CMF)",
             display_estimate(value_percent, plus_percent, minus_percent, "%"),
         )
         st.caption(
-            "Näherung nach Zeng et al. (2016). Sie setzt einen felsigen Planeten ohne "
-            "Wasser- oder H/He-Hülle voraus und gilt hier für 1–8 Erdmassen und CMF 0–0,4."
+            "Approximation from Zeng et al. (2016). It assumes a rocky planet without a water "
+            "or H/He envelope and is used here for 1–8 Earth masses and CMF 0–0.4."
         )
         if core_estimate.valid_sample_fraction is not None:
             st.caption(
-                f"{core_estimate.valid_sample_fraction:.0%} der Unsicherheitsziehungen lagen im Modellbereich."
+                "Measurement uncertainties in mass and radius are propagated through the inverse "
+                "Zeng relation using 20,000 Monte Carlo samples. "
+                f"{core_estimate.valid_sample_fraction:.0%} fell within the valid model domain."
             )
         if core_estimate.reason:
             st.warning(core_estimate.reason)
     else:
-        st.info(core_estimate.reason or "Für diesen Planeten ist das Modell nicht anwendbar.")
+        st.info(core_estimate.reason or "The model is not applicable to this planet.")
 
-    st.subheader("3. Masse-Radius-Diagramm")
+    st.subheader("3. Mass–radius diagram")
     st.plotly_chart(mass_radius_figure(chart_planets), width="stretch")
     st.caption(
-        "Logarithmische Achsen. Referenzkurven für die Modellannahmen CMF 0,0, 0,3 und 0,4 "
-        "werden auf der Startseite im Bereich ‚Modelle‘ angezeigt. Planeten ohne Masse oder "
-        "Radius können nicht als Punkte dargestellt werden."
+        "Logarithmic axes. Reference curves for CMF values of 0.0, 0.3 and 0.4 are shown in "
+        "the Models section on the home page. Planets without a mass or radius cannot be plotted."
     )
 
     saveable_results = [
@@ -308,7 +309,7 @@ try:
     if core_estimate.applicable and core_estimate.estimate is not None:
         saveable_results.append(("iron_core_mass_fraction", core_estimate.estimate, "fraction"))
     can_save = any(estimate.value is not None for _, estimate, _ in saveable_results)
-    if st.button("Analyseergebnisse speichern", disabled=not can_save):
+    if st.button("Save analysis results", disabled=not can_save):
         try:
             with database_session_factory()() as session:
                 stored_planet = session.get(Planet, planet_id)
@@ -346,15 +347,15 @@ try:
             st.session_state["analysis_saved_notice"] = True
             st.rerun()
         except SQLAlchemyError as exc:
-            st.error("Die Analyseergebnisse konnten nicht gespeichert werden.")
+            st.error("Could not save the analysis results.")
             st.exception(exc)
 
-    st.subheader("Beobachtungen")
+    st.subheader("Observations")
     if observation_rows:
         st.dataframe(observation_rows, hide_index=True, width="stretch")
     else:
-        st.caption("Für diesen Planeten sind keine Beobachtungen hinterlegt.")
+        st.caption("No observations are stored for this planet.")
 
 except SQLAlchemyError as exc:
-    st.error("Die Planetendetails konnten nicht aus der lokalen Datenbank geladen werden.")
+    st.error("Could not load planet details from the local database.")
     st.exception(exc)

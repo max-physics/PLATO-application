@@ -42,7 +42,7 @@ def test_missing_semimajor_axis_is_derived_from_period_and_stellar_mass():
         eccentricity=None,
     )
     assert result.semimajor_axis_au == pytest.approx(1.0, rel=0.002)
-    assert "Kepler III" in result.semimajor_axis_source
+    assert "Kepler's third law" in result.semimajor_axis_source
     assert result.periastron_distance_au is None
 
 

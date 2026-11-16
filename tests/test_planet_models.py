@@ -51,7 +51,7 @@ def test_reference_curves_accept_selected_cmf_but_reject_values_outside_domain()
     assert set(curves) == {0.26}
     with pytest.raises(ValueError, match="outside the supported interval"):
         rocky_reference_curves(core_mass_fractions=(0.41,))
-    with pytest.raises(ValueError, match="nur für 1–8 Erdmassen"):
+    with pytest.raises(ValueError, match="only defined here for 1–8 Earth masses"):
         rocky_reference_curves(masses_earth=np.array([0.5, 1.0]))
 
 
@@ -79,9 +79,9 @@ def test_rocky_reference_curves_are_available_only_when_requested():
     planets = [{"id": 42, "name": "Demo", "mass": 2.0, "radius": 1.4}]
     figure = mass_radius_figure(planets, include_rocky_references=True)
     assert [trace.name for trace in figure.data[:3]] == [
-        "Gesteinsreferenz, CMF 0%",
-        "Gesteinsreferenz, CMF 30%",
-        "Gesteinsreferenz, CMF 40%",
+        "Rocky reference, CMF 0%",
+        "Rocky reference, CMF 30%",
+        "Rocky reference, CMF 40%",
     ]
 
 
@@ -91,7 +91,7 @@ def test_mass_radius_figure_can_show_one_selected_cmf_in_a_fixed_valid_domain():
         rocky_core_mass_fractions=(0.26,),
         mass_axis_range=(1.0, 8.0),
     )
-    assert figure.data[0].name == "Gesteinsreferenz, CMF 26%"
+    assert figure.data[0].name == "Rocky reference, CMF 26%"
     assert list(figure.data[0].x)[0] == pytest.approx(1.0)
     assert list(figure.data[0].x)[-1] == pytest.approx(8.0)
     assert list(figure.layout.xaxis.range) == pytest.approx((0.0, 0.90309), abs=1e-5)

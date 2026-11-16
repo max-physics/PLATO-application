@@ -34,8 +34,8 @@ def mass_radius_figure(
                     x=curve_mass,
                     y=curve_radius,
                     mode="lines",
-                    name=f"Gesteinsreferenz, CMF {cmf:.0%}",
-                    hovertemplate="Masse: %{x:.2f} M⊕<br>Radius: %{y:.2f} R⊕<extra>%{fullData.name}</extra>",
+                    name=f"Rocky reference, CMF {cmf:.0%}",
+                    hovertemplate="Mass: %{x:.2f} M⊕<br>Radius: %{y:.2f} R⊕<extra>%{fullData.name}</extra>",
                 )
             )
 
@@ -77,10 +77,10 @@ def mass_radius_figure(
                 text=[planet["name"] for planet in rows],
                 customdata=[[planet.get("id")] for planet in rows],
                 mode="markers",
-                name="Planeten mit Unsicherheiten" if errors else "Unsicherheiten unbekannt",
+                name="Planets with uncertainties" if errors else "Uncertainties unknown",
                 hovertemplate=(
-                    "%{text}<br>Masse: %{x:.3g} M⊕<br>Radius: %{y:.3g} R⊕"
-                    + ("<extra></extra>" if errors else "<br>Unsicherheiten unbekannt<extra></extra>")
+                    "%{text}<br>Mass: %{x:.3g} M⊕<br>Radius: %{y:.3g} R⊕"
+                    + ("<extra></extra>" if errors else "<br>Uncertainties unknown<extra></extra>")
                 ),
                 **trace_options,
             )
@@ -88,17 +88,17 @@ def mass_radius_figure(
 
     add_planet_trace(with_errors, errors=True)
     add_planet_trace(without_errors, errors=False)
-    xaxis = {"title": "Masse (Erdenmassen)", "type": "log"}
+    xaxis = {"title": "Mass (Earth masses)", "type": "log"}
     if mass_axis_range is not None:
         lower_mass, upper_mass = mass_axis_range
         if lower_mass <= 0 or upper_mass <= lower_mass:
-            raise ValueError("Die Grenzen der Masse-Achse müssen positiv und aufsteigend sein.")
+            raise ValueError("Mass-axis bounds must be positive and increasing.")
         xaxis["range"] = [log10(lower_mass), log10(upper_mass)]
 
     figure.update_layout(
         xaxis=xaxis,
-        yaxis={"title": "Radius (Erdradien)", "type": "log"},
-        legend_title="Daten / Modellkurve",
+        yaxis={"title": "Radius (Earth radii)", "type": "log"},
+        legend_title="Data / model curve",
         height=560,
         margin={"t": 20},
         clickmode="event+select",

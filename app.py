@@ -30,16 +30,16 @@ def database_session_factory():
 def format_model_estimate(value, plus, minus, unit: str) -> str:
     """Format a model value and its optional asymmetric uncertainty."""
     if value is None:
-        return "unbekannt"
+        return "Unknown"
     if plus is None and minus is None:
-        return f"{value:.4g} {unit} (Unsicherheit unbekannt)"
-    plus_text = f"{plus:.3g}" if plus is not None else "unbekannt"
-    minus_text = f"{minus:.3g}" if minus is not None else "unbekannt"
+        return f"{value:.4g} {unit} (uncertainty unknown)"
+    plus_text = f"{plus:.3g}" if plus is not None else "unknown"
+    minus_text = f"{minus:.3g}" if minus is not None else "unknown"
     return f"{value:.4g} +{plus_text}/−{minus_text} {unit}"
 
 
 st.set_page_config(
-    page_title="PLATO Scientific Data Analysis Lab",
+    page_title="PLATO Application Demo",
     page_icon="🪐",
     layout="centered",
     initial_sidebar_state="collapsed",
@@ -62,17 +62,17 @@ with logo_column:
         caption=None,
     )
 with title_column:
-    st.title("PLATO Scientific Data Analysis Lab")
+    st.title("PLATO Application Demo")
 st.caption(
-    "Missionsemble: ESA, [CC BY-SA 3.0 IGO](https://creativecommons.org/licenses/by-sa/3.0/igo/). "
-    "Eigenständiger Demonstrator ohne offizielle Verbindung oder Unterstützung durch die ESA. "
-    "[Quelle des Emblems](https://commons.wikimedia.org/wiki/File:ESA_Plato.svg)."
+    "Mission emblem: ESA, [CC BY-SA 3.0 IGO](https://creativecommons.org/licenses/by-sa/3.0/igo/). "
+    "Independent demonstrator; not officially affiliated with or endorsed by ESA. "
+    "[Emblem source](https://commons.wikimedia.org/wiki/File:ESA_Plato.svg)."
 )
-st.caption("Suche einen Planeten nach Name oder Katalog-ID, um seine Parameter anzusehen.")
+st.caption("Search for a planet by name or catalogue ID to view its parameters.")
 search_term = st.text_input(
-    "Suche nach Name oder Katalog-ID",
-    placeholder="z. B. Demo Planet b oder SYNTH-PLANET-001",
-    help="Die Suche berücksichtigt Planetenname und Katalog-ID.",
+    "Search by name or catalogue ID",
+    placeholder="e.g. Demo Planet b or SYNTH-PLANET-001",
+    help="Searches planet names and catalogue IDs.",
     label_visibility="collapsed",
 )
 all_planets = []
@@ -93,24 +93,24 @@ try:
 
     if search_term.strip() and matching_planets:
         selected_planet = st.selectbox(
-            "Suchergebnis",
+            "Search result",
             matching_planets,
             format_func=lambda planet: f"{planet.name} ({planet.catalog_id})",
             key="planet_search_selection",
         )
-        if st.button("Planetendetails öffnen", type="primary"):
+        if st.button("Open planet details", type="primary"):
             st.session_state["selected_planet_id"] = selected_planet.id
             st.switch_page("pages/1_Planetendetails.py")
     elif search_term.strip():
-        st.caption("Kein Planet passt zu dieser Suche.")
+        st.caption("No planets match this search.")
 except SQLAlchemyError as exc:
-    st.error("Die Planetensuche konnte die lokale Datenbank nicht abfragen.")
+    st.error("Could not search the local database.")
     st.exception(exc)
 
-st.subheader("Masse-Radius-Diagramm")
+st.subheader("Mass–radius diagram")
 st.caption(
-    "Bewege den Mauszeiger über einen Punkt für den Namen. Klicke auf einen Planetenpunkt, "
-    "um seine Detailseite zu öffnen. Beide Achsen sind logarithmisch; Modellkurven findest du im Reiter darunter."
+    "Hover over a point to see its name. Click a planet to open its details. "
+    "Both axes are logarithmic; model curves are shown in the tab below."
 )
 chart_planets = [
     {
@@ -137,16 +137,16 @@ if planet_id_from_chart is not None:
     st.session_state["selected_planet_id"] = planet_id_from_chart
     st.switch_page("pages/1_Planetendetails.py")
 
-models_tab, = st.tabs(["Modelle"])
+models_tab, = st.tabs(["Models"])
 with models_tab:
     if all_planets:
         selected_model_planet = st.selectbox(
-            "Planet für Modellrechnung",
+            "Planet for analysis",
             all_planets,
             format_func=lambda planet: f"{planet.name} ({planet.catalog_id})",
             key="home_model_planet",
         )
-        density_tab, rocky_tab = st.tabs(["Dichte & Gravitation", "Zwei-Schichten-Modell"])
+        density_tab, rocky_tab = st.tabs(["Density & gravity", "Two-layer model"])
 
         with density_tab:
             derived = derive_bulk_properties(
@@ -159,7 +159,7 @@ with models_tab:
             )
             density_col, gravity_col = st.columns(2)
             density_col.metric(
-                "Mittlere Dichte",
+                "Mean density",
                 format_model_estimate(
                     derived.bulk_density.value,
                     derived.bulk_density.uncertainty_plus,
@@ -168,7 +168,7 @@ with models_tab:
                 ),
             )
             gravity_col.metric(
-                "Oberflächengravitation",
+                "Surface gravity",
                 format_model_estimate(
                     derived.surface_gravity.value,
                     derived.surface_gravity.uncertainty_plus,
@@ -177,8 +177,9 @@ with models_tab:
                 ),
             )
             st.caption(
-                "Aus Masse und Radius in Erdmassen bzw. Erdradien berechnet. "
-                "Unsicherheiten werden fortgepflanzt, wenn alle Eingangsfehler verfügbar sind."
+                "Calculated from mass and radius in Earth units. When all four asymmetric input "
+                "uncertainties are available, 20,000 independent mass-radius samples are drawn; "
+                "density and gravity are recalculated for each sample to propagate measurement errors."
             )
 
         with rocky_tab:
@@ -193,7 +194,7 @@ with models_tab:
             if core.applicable and core.estimate is not None:
                 estimate = core.estimate
                 st.metric(
-                    "Geschätzter Eisenkern-Massenanteil (CMF)",
+                    "Estimated iron core mass fraction (CMF)",
                     format_model_estimate(
                         estimate.value * 100 if estimate.value is not None else None,
                         estimate.uncertainty_plus * 100 if estimate.uncertainty_plus is not None else None,
@@ -202,30 +203,34 @@ with models_tab:
                     ),
                 )
                 if core.valid_sample_fraction is not None:
-                    st.caption(f"{core.valid_sample_fraction:.0%} der Unsicherheitsziehungen lagen im Modellbereich.")
+                    st.caption(
+                        "Measurement uncertainties in mass and radius are propagated through the "
+                        "inverse Zeng relation using 20,000 Monte Carlo samples. "
+                        f"{core.valid_sample_fraction:.0%} fell within the valid model domain."
+                    )
             else:
-                st.info(core.reason or "Für diesen Planeten ist das Modell nicht anwendbar.")
+                st.info(core.reason or "The model is not applicable to this planet.")
             selected_cmf_percent = st.slider(
-                "Eisenkern-Massenanteil (CMF)",
+                "Iron core mass fraction (CMF)",
                 min_value=0,
                 max_value=100,
                 value=30,
                 step=1,
                 format="%d%%",
                 help=(
-                    "CMF ist der Anteil der Planetenmasse im Eisenkern. "
-                    "Die hier verwendete Zeng-Näherung gilt nur bis 40 %."
+                    "CMF is the fraction of the planet's mass contained in its iron core. "
+                    "The Zeng approximation used here is valid only up to 40%."
                 ),
                 key="rocky_model_cmf_slider",
             )
             st.caption(
-                "Das Zwei-Schichten-Modell nimmt einen Eisenkern und Silikatmantel an. "
-                "Die Näherung nach Zeng et al. (2016) gilt hier für 1–8 Erdmassen und CMF 0–40 %."
+                "The two-layer model assumes an iron core and silicate mantle. The approximation "
+                "from Zeng et al. (2016) is used here for 1–8 Earth masses and CMF 0–40%."
             )
             if selected_cmf_percent / 100 > ROCKY_MODEL_MAX_CMF:
                 st.warning(
-                    "Der gewählte CMF liegt außerhalb des Modellbereichs (0–40 %). "
-                    "Für diese Einstellung wird keine Modellkurve extrapoliert."
+                    "The selected CMF is outside the model domain (0–40%). No model curve is "
+                    "extrapolated for this setting."
                 )
             else:
                 model_domain_planets = [
@@ -243,9 +248,9 @@ with models_tab:
                     key="home_rocky_model_comparison",
                 )
                 st.caption(
-                    "Der Modellvergleich zeigt nur Planeten mit bekannter Masse im gültigen "
-                    "Bereich von 1–8 Erdmassen. Planeten außerhalb dieses Bereichs werden hier ausgeblendet."
+                    "The comparison includes only planets with known masses in the valid range "
+                    "of 1–8 Earth masses. Planets outside this range are hidden."
                 )
 
     else:
-        st.info("Es sind derzeit keine Planeten für Modellrechnungen vorhanden.")
+        st.info("There are currently no planets available for analysis.")

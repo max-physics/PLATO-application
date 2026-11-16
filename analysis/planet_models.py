@@ -104,10 +104,10 @@ def infer_rocky_core_mass_fraction(
     fractions (CMF) of 0--0.4. It assumes an iron core and silicate mantle.
     """
     if mass_earth is None or radius_earth is None or mass_earth <= 0 or radius_earth <= 0:
-        return CoreMassFractionEstimate(None, False, "Masse und Radius werden benötigt.")
+        return CoreMassFractionEstimate(None, False, "Mass and radius are required.")
     if not ROCKY_MODEL_MIN_MASS_EARTH <= mass_earth <= ROCKY_MODEL_MAX_MASS_EARTH:
         return CoreMassFractionEstimate(
-            None, False, "Das Modell gilt hier nur für 1 bis 8 Erdmassen."
+            None, False, "This model is only used here for 1 to 8 Earth masses."
         )
 
     cmf = _invert_rocky_mass_radius(mass_earth, radius_earth)
@@ -115,7 +115,7 @@ def infer_rocky_core_mass_fraction(
         return CoreMassFractionEstimate(
             None,
             False,
-            "Die Messwerte liegen außerhalb der modellierten felsigen Zusammensetzungen (CMF 0–0,4).",
+            "The measurements are outside the modeled rocky compositions (CMF 0–0.4).",
         )
 
     errors = (mass_uncertainty_plus, mass_uncertainty_minus,
@@ -149,7 +149,7 @@ def infer_rocky_core_mass_fraction(
     if valid.sum() < max(50, samples * 0.01):
         return CoreMassFractionEstimate(
             Estimate(cmf), True,
-            "Zu wenige Unsicherheitsziehungen liegen im gültigen Modellbereich.",
+            "Too few uncertainty samples fall within the valid model domain.",
             valid_sample_fraction=valid_fraction,
         )
     return CoreMassFractionEstimate(
@@ -175,7 +175,7 @@ def rocky_reference_curves(
         else np.linspace(ROCKY_MODEL_MIN_MASS_EARTH, ROCKY_MODEL_MAX_MASS_EARTH, 200)
     )
     if np.any(masses < ROCKY_MODEL_MIN_MASS_EARTH) or np.any(masses > ROCKY_MODEL_MAX_MASS_EARTH):
-        raise ValueError("Die Referenzkurven gelten hier nur für 1–8 Erdmassen.")
+        raise ValueError("The reference curves are only defined here for 1–8 Earth masses.")
     curves: dict[float, tuple[NDArray[np.float64], NDArray[np.float64]]] = {}
     for cmf in core_mass_fractions:
         if not 0.0 <= cmf <= ROCKY_MODEL_MAX_CMF:

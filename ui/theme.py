@@ -20,14 +20,14 @@ def apply_space_background() -> None:
     image_path = next((path for path in asset_candidates if path.is_file()), None)
     if image_path is None:
         st.warning(
-            "Hintergrundbild nicht gefunden. Erwartet wurde "
+            "Background image not found. Expected either "
             f"{asset_candidates[0]} oder {asset_candidates[1]}."
         )
         return
     try:
         image_data = base64.b64encode(image_path.read_bytes()).decode("ascii")
     except OSError as exc:
-        st.warning(f"Hintergrundbild {image_path} konnte nicht gelesen werden: {exc}")
+        st.warning(f"Could not read background image {image_path}: {exc}")
         return
 
     # st.html injects style tags into the page DOM; markdown may sanitize or
