@@ -71,16 +71,7 @@ pytest
 
 ## Projektdokumentation
 
-Die vollständige technische und wissenschaftliche Projektdokumentation wird
-bis Freitag, 20. November 2026, fertiggestellt. Die [LaTeX-Datei](docs/projektdokumentation.tex)
-kann mit einer installierten LaTeX-Distribution im Projektordner beispielsweise
-so gebaut werden:
-
-```bash
-pdflatex -output-directory=/tmp docs/projektdokumentation.tex
-```
-
-Für Inhaltsverzeichnis und Querverweise den Befehl ein zweites Mal ausführen.
+Die vollständige Projektdokumentation wird bis Freitag, 20.11., im Ordner `docs/` abgelegt.
 
 ## Projektstruktur
 
